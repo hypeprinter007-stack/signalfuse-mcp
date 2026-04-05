@@ -1,0 +1,20 @@
+# Smithery.ai configuration for signalfuse-mcp
+# https://smithery.ai/docs/build/getting-started
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      SIGNALFUSE_CREDIT_TOKEN:
+        type: string
+        description: "SignalFuse credit token for API access (get 25 free calls at signalfuse.co)"
+    required: []
+  commandFunction: |-
+    (config) => ({
+      command: "npx",
+      args: ["-y", "signalfuse-mcp"],
+      env: {
+        SIGNALFUSE_CREDIT_TOKEN: config.SIGNALFUSE_CREDIT_TOKEN ?? ""
+      }
+    })

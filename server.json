@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.hypeprinter007-stack/signalfuse",
+  "description": "Fused crypto trading signals — sentiment, macro regime, and market structure in one call.",
+  "repository": {
+    "url": "https://github.com/hypeprinter007-stack/signalfuse-mcp",
+    "source": "github"
+  },
+  "version": "1.0.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "signalfuse-mcp",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "SignalFuse credit token for API access (get 25 free calls at signalfuse.co)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true,
+          "name": "SIGNALFUSE_CREDIT_TOKEN"
+        }
+      ]
+    }
+  ]
+}

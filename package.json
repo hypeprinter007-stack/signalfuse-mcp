@@ -1,0 +1,31 @@
+{
+  "name": "signalfuse-mcp",
+  "version": "1.0.5",
+  "description": "MCP server for SignalFuse trading intelligence API",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "signalfuse-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "trading",
+    "crypto",
+    "hyperliquid",
+    "signals",
+    "sentiment"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hypeprinter007-stack/signalfuse-mcp"
+  },
+  "homepage": "https://signalfuse.co",
+  "mcpName": "io.github.hypeprinter007-stack/signalfuse"
+}
