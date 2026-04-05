@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "signalfuse": {
+      "command": "npx",
+      "args": ["-y", "signalfuse-mcp"],
+      "env": {
+        "SIGNALFUSE_CREDIT_TOKEN": ""
+      }
+    }
+  }
+}
