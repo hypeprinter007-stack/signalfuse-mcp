@@ -91,6 +91,148 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         },
       },
     },
+    {
+      name: "get_arena_leaderboard",
+      description:
+        "Get the Strategy Arena leaderboard. Returns an array of strategies " +
+        "with wins, losses, total_pnl_bp, win_rate, and total_income_usd. Free endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {},
+      },
+    },
+    {
+      name: "get_arena_signal",
+      description:
+        "Get a signal from a specific Strategy Arena strategy for a given asset. " +
+        "Returns direction, score, and confidence. Paid endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          strategy_id: {
+            type: "string",
+            description:
+              "Strategy identifier. One of: rsi_7_extremes, ema_5_breakout, " +
+              "bb_squeeze, rsi_reversion_swing, vwap_reversion",
+          },
+          symbol: {
+            type: "string",
+            description: "Asset ticker, e.g. BTC, ETH, SOL",
+          },
+          credit_token: {
+            type: "string",
+            description: "Optional credit token for bulk-prepaid access",
+          },
+        },
+        required: ["strategy_id", "symbol"],
+      },
+    },
+    {
+      name: "search_brave",
+      description:
+        "Search the web using Brave Search via SignalFuse gateway. " +
+        "Paid endpoint (x402). Returns Brave search results.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search query string",
+          },
+          count: {
+            type: "number",
+            description: "Number of results to return (default 10)",
+          },
+          credit_token: {
+            type: "string",
+            description: "Optional credit token for bulk-prepaid access",
+          },
+        },
+        required: ["query"],
+      },
+    },
+    {
+      name: "search_tavily",
+      description:
+        "Search the web using Tavily via SignalFuse gateway. " +
+        "Paid endpoint (x402). Returns Tavily search results.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search query string",
+          },
+          search_depth: {
+            type: "string",
+            description: 'Search depth: "basic" or "advanced"',
+          },
+          max_results: {
+            type: "number",
+            description: "Maximum number of results to return",
+          },
+          credit_token: {
+            type: "string",
+            description: "Optional credit token for bulk-prepaid access",
+          },
+        },
+        required: ["query"],
+      },
+    },
+    {
+      name: "get_pricing",
+      description:
+        "Get pricing info for all SignalFuse API endpoints. Free endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {},
+      },
+    },
+    {
+      name: "execute_code",
+      description:
+        "Execute code in a sandboxed E2B environment. " +
+        "Supports Python (default) and JavaScript. Max 60s timeout. Paid endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          code: {
+            type: "string",
+            description: "Code to execute",
+          },
+          language: {
+            type: "string",
+            description: "Programming language (python or javascript)",
+            enum: ["python", "javascript"],
+          },
+          timeout: {
+            type: "number",
+            description: "Execution timeout in seconds (max 60)",
+          },
+          credit_token: {
+            type: "string",
+            description: "Credit token for authentication (optional if using x402)",
+          },
+        },
+        required: ["code"],
+      },
+    },
+    {
+      name: "check_balance",
+      description:
+        "Check remaining credits for a prepaid credit token. " +
+        "Returns wallet, credits_remaining, and pack info.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          credit_token: {
+            type: "string",
+            description: "Credit token to check balance for",
+          },
+        },
+        required: ["credit_token"],
+      },
+    },
   ],
 }));
 
@@ -104,6 +246,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // Validate symbol: alphanumeric only, max 10 chars
     const sanitize = (s) => (s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
 
+    let fetchOptions = { headers };
+
     if (name === "get_signal") url += `/v1/signal/${sanitize(args.symbol)}`;
     else if (name === "get_regime") url += "/v1/regime";
     else if (name === "get_sentiment") url += `/v1/sentiment/${sanitize(args.symbol)}`;
@@ -115,9 +259,43 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         url += `?${params.toString()}`;
       }
     }
+    else if (name === "get_arena_leaderboard") url += "/v1/arena/leaderboard";
+    else if (name === "get_arena_signal") {
+      const VALID_STRATEGIES = ["rsi_7_extremes", "ema_5_breakout", "bb_squeeze", "rsi_reversion_swing", "vwap_reversion"];
+      const stratId = (args.strategy_id || "").replace(/[^a-z0-9_]/gi, "").slice(0, 30);
+      if (!VALID_STRATEGIES.includes(stratId))
+        throw new Error(`Invalid strategy_id. Must be one of: ${VALID_STRATEGIES.join(", ")}`);
+      url += `/v1/arena/${stratId}/${sanitize(args.symbol)}`;
+    }
+    else if (name === "search_brave") {
+      const q = (args.query || "").slice(0, 500);
+      const params = new URLSearchParams({ q });
+      if (args.count) params.set("count", String(Math.min(Math.max(1, args.count), 50)));
+      url += `/v1/gateway/search/brave?${params.toString()}`;
+    }
+    else if (name === "search_tavily") {
+      url += "/v1/gateway/search/tavily";
+      const body = { query: (args.query || "").slice(0, 500) };
+      if (args.search_depth) body.search_depth = args.search_depth === "advanced" ? "advanced" : "basic";
+      if (args.max_results) body.max_results = Math.min(Math.max(1, args.max_results), 50);
+      fetchOptions.method = "POST";
+      fetchOptions.headers = { ...headers, "Content-Type": "application/json" };
+      fetchOptions.body = JSON.stringify(body);
+    }
+    else if (name === "execute_code") {
+      url += "/v1/gateway/execute/e2b";
+      const body = { code: (args.code || "").slice(0, 10000) };
+      if (args.language) body.language = args.language === "javascript" ? "javascript" : "python";
+      if (args.timeout) body.timeout = Math.min(Math.max(1, args.timeout), 60);
+      fetchOptions.method = "POST";
+      fetchOptions.headers = { ...headers, "Content-Type": "application/json" };
+      fetchOptions.body = JSON.stringify(body);
+    }
+    else if (name === "get_pricing") url += "/v1/pricing";
+    else if (name === "check_balance") url += "/v1/credits/balance";
     else throw new Error(`Unknown tool: ${name}`);
 
-    const res = await fetch(url, { headers });
+    const res = await fetch(url, fetchOptions);
     if (!res.ok) {
       // Surface 402 payment required clearly
       if (res.status === 402) {

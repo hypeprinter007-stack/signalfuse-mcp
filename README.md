@@ -1,17 +1,52 @@
 # signalfuse-mcp
 
-MCP server for [SignalFuse](https://signalfuse.co) — trading intelligence API.
+MCP server for [SignalFuse](https://signalfuse.co) — trading intelligence for AI agents.
 
-Adds four tools to any MCP-compatible AI agent:
-- `get_signal` — fused directional signal: sentiment + macro + market structure
-- `get_regime` — current risk-on / risk-off macro regime
-- `get_sentiment` — raw social sentiment breakdown
-- `get_signal_batch` — all assets in one call
+Adds **11 tools** to any MCP-compatible agent: directional signals, sentiment, macro regime, strategy arena, web search, sandboxed code execution, and account management.
 
-## Install
+## Tools
+
+| # | Tool | Endpoint | Description | Price |
+|---|------|----------|-------------|-------|
+| 1 | `get_signal` | `GET /v1/signal/{symbol}` | Fused directional signal | $0.010 |
+| 2 | `get_signal_batch` | `GET /v1/signal/batch` | All assets in one call | $0.075 |
+| 3 | `get_sentiment` | `GET /v1/sentiment/{symbol}` | Social sentiment | $0.002 |
+| 4 | `get_regime` | `GET /v1/regime` | Macro regime (risk-on / risk-off) | $0.001 |
+| 5 | `get_arena_leaderboard` | `GET /v1/arena/leaderboard` | Live strategy rankings | FREE |
+| 6 | `get_arena_signal` | `GET /v1/arena/{strategy_id}/{symbol}` | Strategy-specific signal | $0.001 |
+| 7 | `search_brave` | `GET /v1/gateway/search/brave` | Web search via Brave | $0.008 |
+| 8 | `search_tavily` | `POST /v1/gateway/search/tavily` | AI-powered search via Tavily | $0.012 |
+| 9 | `execute_code` | `POST /v1/gateway/execute/e2b` | Sandboxed code execution via E2B | $0.005 |
+| 10 | `get_pricing` | `GET /v1/pricing` | Pricing info | FREE |
+| 11 | `check_balance` | `GET /v1/credits/balance` | Credit balance check | FREE |
+
+### Strategy Arena
+
+Four live strategies compete head-to-head on the arena leaderboard:
+
+- **EMA Breakout** — trend-following on exponential moving average crossovers
+- **RSI Extremes** — momentum entries at RSI overbought/oversold levels
+- **RSI Reversion** — mean-reversion fades against RSI extremes
+- **VWAP Reversion** — mean-reversion entries around volume-weighted average price
+
+Use `get_arena_leaderboard` to see rankings, then `get_arena_signal` to pull a signal from any strategy.
+
+## Quick Start
+
+```bash
+npx signalfuse-mcp@1.1.0
+```
+
+Or install globally:
 
 ```bash
 npm install -g signalfuse-mcp
+```
+
+Python client (x402 payments built in):
+
+```bash
+pip install signalfuse
 ```
 
 ## Claude Desktop Setup
@@ -28,7 +63,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Restart Claude Desktop. Ask Claude: *"What's the signal for BTC?"* — it will call SignalFuse automatically.
+Restart Claude Desktop. Ask: *"What's the signal for BTC?"* and it calls SignalFuse automatically.
 
 ## Claude Code Setup
 
@@ -44,20 +79,23 @@ Add to your project's `.mcp.json`:
 
 ## Authentication
 
-**Free trial:** 25 free calls, no signup:
+**Free trial** — 25 calls, no signup:
+
 ```bash
 curl -X POST https://api.signalfuse.co/v1/credits/trial \
   -H "Content-Type: application/json" \
   -d '{"wallet":"YOUR_ETH_ADDRESS"}'
 ```
 
-Then pass the returned `credit_token` in tool calls.
+Pass the returned `credit_token` in tool calls.
 
-**Bulk credits:** Buy starter (500 calls) or pro (5000 calls) packs.
+**Bulk credits** — starter (500 calls) and pro (5,000 calls) packs available at [signalfuse.co](https://signalfuse.co).
 
-> Note: This MCP server uses credit tokens for authentication. For x402 per-call payment (automatic USDC on Base), use the [SignalFuse Python client](https://github.com/hypeprinter007-stack/hyperliquid-starter-bot) which has full x402 SDK integration.
+## Links
 
-Full docs at [https://signalfuse.co](https://signalfuse.co)
+- Website: [signalfuse.co](https://signalfuse.co)
+- npm: [npmjs.com/package/signalfuse-mcp](https://www.npmjs.com/package/signalfuse-mcp)
+- PyPI: [pypi.org/project/signalfuse](https://pypi.org/project/signalfuse/)
 
 ## Disclaimer
 
