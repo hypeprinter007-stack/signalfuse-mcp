@@ -79,7 +79,7 @@ Add to your project's `.mcp.json`:
 
 ## Authentication
 
-**Free trial** — 25 calls, no signup:
+**Free trial** — 5 calls, no signup:
 
 ```bash
 curl -X POST https://api.signalfuse.co/v1/credits/trial \

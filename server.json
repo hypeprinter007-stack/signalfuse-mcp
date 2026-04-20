@@ -17,7 +17,7 @@
       },
       "environmentVariables": [
         {
-          "description": "SignalFuse credit token for API access (get 25 free calls at signalfuse.co)",
+          "description": "SignalFuse credit token for API access (get 5 free calls at signalfuse.co)",
           "isRequired": false,
           "format": "string",
           "isSecret": true,

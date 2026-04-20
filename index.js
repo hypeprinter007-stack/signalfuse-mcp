@@ -303,7 +303,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return {
           content: [{
             type: "text",
-            text: `Payment required. Get 25 free credits:\n` +
+            text: `Payment required. Get 5 free credits:\n` +
               `curl -X POST ${BASE_URL}/v1/credits/trial -H "Content-Type: application/json" ` +
               `-d '{"wallet":"YOUR_ETH_ADDRESS"}'\n\n` +
               `Then pass the credit_token in subsequent calls.`,
