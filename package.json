@@ -1,6 +1,6 @@
 {
   "name": "signalfuse-mcp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP server for SignalFuse — AI trading intelligence with 11 tools: real-time signals, market sentiment, macro regime, live strategy arena, web search (Brave/Tavily), sandboxed code execution (E2B). Pay-per-call via x402 micropayments.",
   "main": "index.js",
   "type": "module",
@@ -21,6 +21,11 @@
     "signals",
     "sentiment",
     "x402",
+    "micropayments",
+    "crypto-signals",
+    "agent-tools",
+    "trading-intelligence",
+    "web-search",
     "arena",
     "bazaar",
     "brave",
@@ -32,6 +37,6 @@
     "type": "git",
     "url": "https://github.com/hypeprinter007-stack/signalfuse-mcp"
   },
-  "homepage": "https://signalfuse.co",
+  "homepage": "https://api.signalfuse.co",
   "mcpName": "io.github.hypeprinter007-stack/signalfuse"
 }
