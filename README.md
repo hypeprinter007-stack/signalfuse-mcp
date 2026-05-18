@@ -1,3 +1,5 @@
+<p align="center"><img src="signalfuse-logo.png" alt="SignalFuse" width="128" /></p>
+
 # SignalFuse MCP Server
 
 MCP server and REST API for crypto trading signals, sentiment analysis, macro regime classification, strategy arena, web search, and sandboxed code execution. Designed for AI agents, LLMs, and autonomous trading systems.
