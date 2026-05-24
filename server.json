@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.hypeprinter007-stack/signalfuse",
-  "description": "Fused crypto trading signals — sentiment, macro regime, and market structure in one call.",
+  "description": "11 tools: crypto signals, sentiment, macro regime, arena, search, exec. x402 pay-per-call.",
   "repository": {
     "url": "https://github.com/hypeprinter007-stack/signalfuse-mcp",
     "source": "github"
   },
-  "version": "1.0.1",
+  "version": "1.1.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "signalfuse-mcp",
-      "version": "1.0.1",
+      "version": "1.1.2",
       "transport": {
         "type": "stdio"
       },
