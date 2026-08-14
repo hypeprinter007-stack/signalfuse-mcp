@@ -27,6 +27,11 @@ jobs:
       - name: Validate syntax
         run: node --check index.js
 
+      # Layer 1 (version axes) + Layer 2 (MCP protocol handshake + 11-tool
+      # inventory contract) + credit_token redaction. All offline/spend-safe.
+      - name: Protocol CI
+        run: npm test
+
       - name: Smoke test (server starts and handles SIGTERM)
         run: |
           timeout 3 node index.js < /dev/null &

@@ -4,6 +4,8 @@
  * Install: npm install -g signalfuse-mcp
  * Add to Claude Desktop config and Claude Code will auto-discover it.
  */
+import { readFileSync } from "node:fs";
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -11,10 +13,15 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-const BASE_URL = "https://api.signalfuse.co";
+// Single source of truth: read the version from package.json (shipped in the
+// npm tarball) so the MCP runtime identity can never drift from the package.
+const VERSION = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version;
+
+// Overridable so tests can point at an unroutable host (offline, no live calls).
+const BASE_URL = process.env.SIGNALFUSE_API_URL || "https://api.signalfuse.co";
 
 const server = new Server(
-  { name: "signalfuse", version: "1.0.0" },
+  { name: "signalfuse", version: VERSION },
   { capabilities: { tools: {} } }
 );
 
