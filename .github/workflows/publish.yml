@@ -1,0 +1,76 @@
+name: Publish to npm
+
+# This repo had no publish automation, and it showed: the runtime-version fix
+# landed on main in eb41754 but never reached npm, so `npx signalfuse-mcp`
+# kept serving the 2026-05-18 artifact whose index.js hardcoded 1.0.0 while
+# its package.json claimed 1.1.2. The v1.1.3 tag was cut and nothing published
+# it. Tag pushes now publish, and the gates below make the specific failure
+# that caused this impossible to repeat.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Re-runnable by hand. A tag push fires once, so a failure outside our control
+  # — npm trusted-publisher config not yet in place, a registry blip — would
+  # otherwise need the tag deleted and re-pushed to retry. Publishing stays
+  # idempotent per version: npm rejects a version that already exists, so a
+  # stray dispatch cannot overwrite a release.
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Upgrade npm (Trusted Publishing requires npm >= 11.5.1)
+        # Pin to the 11 line: >= 11.5.1 for Trusted Publishing, and still
+        # supports Node 20. npm@latest (12.x) dropped Node 20 → EBADENGINE.
+        run: npm install -g npm@11
+
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          PKG=$(node -p "require('./package.json').version")
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v$TAG does not match package.json version $PKG"
+            exit 1
+          fi
+
+      - run: npm install --no-audit --no-fund
+
+      # Gates the release on the version contract itself: check-versions.mjs
+      # compares package.json against server.json, and the protocol test asserts
+      # the running server reports the package version over MCP. Publishing an
+      # artifact that misreports its own version now fails here instead of
+      # sitting on the registry for three months.
+      - run: npm test
+
+      - name: Verify the packed artifact reports the right version
+        # The runtime reads ./package.json relative to index.js, so the version
+        # is only correct if package.json actually ships in the tarball. Prove
+        # that against the real pack output rather than the working tree.
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          npm pack --silent >/dev/null
+          tar xzf signalfuse-mcp-"$PKG".tgz
+          PACKED=$(node -p "require('./package/package.json').version")
+          if [ "$PACKED" != "$PKG" ]; then
+            echo "Packed artifact reports $PACKED, expected $PKG"
+            exit 1
+          fi
+          grep -q 'readFileSync' package/index.js || {
+            echo "index.js no longer derives its version from package.json"; exit 1; }
+          rm -rf package signalfuse-mcp-"$PKG".tgz
+
+      - run: npm publish --provenance --access public

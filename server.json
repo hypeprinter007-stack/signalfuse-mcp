@@ -6,12 +6,12 @@
     "url": "https://github.com/hypeprinter007-stack/signalfuse-mcp",
     "source": "github"
   },
-  "version": "1.1.2",
+  "version": "1.1.4",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "signalfuse-mcp",
-      "version": "1.1.2",
+      "version": "1.1.4",
       "transport": {
         "type": "stdio"
       },

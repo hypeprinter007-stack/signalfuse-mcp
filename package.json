@@ -1,7 +1,7 @@
 {
   "name": "signalfuse-mcp",
-  "version": "1.1.2",
-  "description": "MCP server for SignalFuse — AI trading intelligence with 11 tools: real-time signals, market sentiment, macro regime, live strategy arena, web search (Brave/Tavily), sandboxed code execution (E2B). Pay-per-call via x402 micropayments.",
+  "version": "1.1.4",
+  "description": "MCP server for SignalFuse \u2014 AI trading intelligence with 11 tools: real-time signals, market sentiment, macro regime, live strategy arena, web search (Brave/Tavily), sandboxed code execution (E2B). Pay-per-call via x402 micropayments.",
   "main": "index.js",
   "type": "module",
   "bin": {
