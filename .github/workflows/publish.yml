@@ -73,4 +73,39 @@ jobs:
             echo "index.js no longer derives its version from package.json"; exit 1; }
           rm -rf package signalfuse-mcp-"$PKG".tgz
 
-      - run: npm publish --provenance --access public
+      - name: Publish to npm
+        # Skip when this exact version is already on the registry, so a
+        # dispatch re-run can carry on to the Registry step instead of dying
+        # on "you cannot publish over an existing version". Versions are still
+        # immutable — this never overwrites, it only declines to retry.
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          if npm view "signalfuse-mcp@$PKG" version >/dev/null 2>&1; then
+            echo "signalfuse-mcp@$PKG already published — skipping npm publish"
+          else
+            npm publish --provenance --access public
+          fi
+
+      # npm and the Registry as one sequence, not two. Previously the Registry
+      # record was updated by hand, which is why it sat pointing at an npm
+      # artifact whose runtime reported a different version than the record
+      # claimed. Runs after npm publish so the Registry can never advertise a
+      # package version that does not exist yet.
+      - name: Publish to the MCP Registry
+        run: |
+          curl -sSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/').tar.gz" \
+            | tar xz mcp-publisher
+          # OIDC against the io.github.hypeprinter007-stack/* namespace — same
+          # id-token the npm provenance step uses, no stored credential.
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
+
+      - name: Verify the Registry resolves to the version we just published
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./server.json').name")
+          sleep 10
+          REC=$(curl -sS "https://registry.modelcontextprotocol.io/v0.1/servers/$(node -p "encodeURIComponent(require('./server.json').name)")/versions/latest")
+          GOT=$(echo "$REC" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).packages[0].version")
+          echo "Registry $NAME → package version $GOT (expected $PKG)"
+          [ "$GOT" = "$PKG" ] || { echo "Registry did not pick up $PKG"; exit 1; }
