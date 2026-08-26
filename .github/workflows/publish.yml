@@ -104,8 +104,12 @@ jobs:
         run: |
           PKG=$(node -p "require('./package.json').version")
           NAME=$(node -p "require('./server.json').name")
+          SLUG=$(node -p "encodeURIComponent(require('./server.json').name)")
           sleep 10
-          REC=$(curl -sS "https://registry.modelcontextprotocol.io/v0.1/servers/$(node -p "encodeURIComponent(require('./server.json').name)")/versions/latest")
-          GOT=$(echo "$REC" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).packages[0].version")
+          REC=$(curl -sS "https://registry.modelcontextprotocol.io/v0.1/servers/$SLUG/versions/latest")
+          # The record nests the server object under `server`; tolerate both
+          # shapes rather than assuming, since guessing wrong here fails the
+          # run on a release that actually succeeded.
+          GOT=$(echo "$REC" | jq -r '(.server // .).packages[0].version')
           echo "Registry $NAME → package version $GOT (expected $PKG)"
-          [ "$GOT" = "$PKG" ] || { echo "Registry did not pick up $PKG"; exit 1; }
+          [ "$GOT" = "$PKG" ] || { echo "Registry did not pick up $PKG"; echo "$REC" | head -c 400; exit 1; }
