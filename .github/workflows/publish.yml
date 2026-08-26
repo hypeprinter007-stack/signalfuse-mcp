@@ -92,7 +92,18 @@ jobs:
       # claimed. Runs after npm publish so the Registry can never advertise a
       # package version that does not exist yet.
       - name: Publish to the MCP Registry
+        # Skips when the Registry already holds this version. It rejects
+        # duplicates the same way npm does, so without this a dispatch re-run
+        # fails on a release that is already correct.
         run: |
+          PKG=$(node -p "require('./package.json').version")
+          SLUG=$(node -p "encodeURIComponent(require('./server.json').name)")
+          CUR=$(curl -sS "https://registry.modelcontextprotocol.io/v0.1/servers/$SLUG/versions/latest" \
+                | jq -r '(.server // .).version // empty')
+          if [ "$CUR" = "$PKG" ]; then
+            echo "Registry already at $PKG — skipping publish"
+            exit 0
+          fi
           curl -sSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/').tar.gz" \
             | tar xz mcp-publisher
           # OIDC against the io.github.hypeprinter007-stack/* namespace — same
